@@ -16,11 +16,13 @@ func getRandomIdMust(t *testing.T) int64 {
 
 	if count == 0 {
 		// 没有账户则先创建一个账户
-		createARandomAccount(t)
+		tempAccount := createARandomAccount(t)
 		count++
-		return 1
+		return tempAccount.ID
 	}
-	return util.RandomAccountId(count)
+	firstAccount, err := testQueries.GetFirstAccount(context.Background())
+	require.NoError(t, err)
+	return util.RandomAccountId(firstAccount.ID, count)
 }
 
 func createARandomEntry(t *testing.T) Entry {
@@ -103,7 +105,10 @@ func TestGetEntry(t *testing.T) {
 	createARandomEntry(t)
 	count, err := testQueries.CountEntries(context.Background())
 	require.NoError(t, err)
-	entry, err := testQueries.GetEntry(context.Background(), rand.Int63n(count)+1)
+	firstEntry, err := testQueries.GetFirstEntry(context.Background())
+	require.NoError(t, err)
+	id := rand.Int63n(count) + firstEntry.ID
+	entry, err := testQueries.GetEntry(context.Background(), id)
 	require.NoError(t, err)
 	require.NotEmpty(t, entry)
 }

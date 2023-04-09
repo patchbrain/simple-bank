@@ -3,8 +3,10 @@ package db
 import (
 	"database/sql"
 	"log"
+	"math/rand"
 	"os"
 	"testing"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -17,6 +19,7 @@ const (
 )
 
 func TestMain(m *testing.M) {
+	rand.Seed(time.Now().UnixNano())
 	// 连接数据库
 	conn, err := sql.Open(dbDriver, dbSource)
 	if err != nil {

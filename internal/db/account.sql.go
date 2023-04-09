@@ -76,6 +76,24 @@ func (q *Queries) GetAccount(ctx context.Context, id int64) (Account, error) {
 	return i, err
 }
 
+const getFirstAccount = `-- name: GetFirstAccount :one
+SELECT id, owner, balance, currency, created_at FROM accounts
+ORDER BY id LIMIT 1
+`
+
+func (q *Queries) GetFirstAccount(ctx context.Context) (Account, error) {
+	row := q.db.QueryRowContext(ctx, getFirstAccount)
+	var i Account
+	err := row.Scan(
+		&i.ID,
+		&i.Owner,
+		&i.Balance,
+		&i.Currency,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const listAccount = `-- name: ListAccount :many
 SELECT id, owner, balance, currency, created_at FROM accounts
 ORDER BY id

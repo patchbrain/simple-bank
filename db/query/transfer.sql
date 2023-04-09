@@ -11,6 +11,10 @@ INSERT INTO transfers (
 SELECT * FROM transfers
 WHERE id = $1;
 
+-- name: GetFirstTransfer :one
+SELECT * FROM transfers
+ORDER BY id LIMIT 1;
+
 -- name: ListTransferByFromId :many
 SELECT * FROM transfers
 WHERE from_account_id = $1

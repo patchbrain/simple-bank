@@ -47,7 +47,12 @@ func RandomAmount(remain int64) int64 {
 	return RandomInt64(-remain, 1000)
 }
 
+// RandomTransferAmount 随机生成一个在0~remain的数，作为transfer的金额
+func RandomTransferAmount(remain int64) int64 {
+	return RandomInt64(0, remain)
+}
+
 // RandomAccountId 随机生成一个合法的AccountID
-func RandomAccountId(n int64) int64 {
-	return RandomInt64(1, n)
+func RandomAccountId(n int64, count int64) int64 {
+	return RandomInt64(n, n+count-1)
 }
