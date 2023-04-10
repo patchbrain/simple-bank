@@ -12,6 +12,7 @@ import (
 )
 
 var testQueries *Queries
+var testDb *sql.DB
 
 const (
 	dbDriver = "postgres"
@@ -20,13 +21,14 @@ const (
 
 func TestMain(m *testing.M) {
 	rand.Seed(time.Now().UnixNano())
+	var err error
 	// 连接数据库
-	conn, err := sql.Open(dbDriver, dbSource)
+	testDb, err = sql.Open(dbDriver, dbSource)
 	if err != nil {
 		log.Fatalf("fail to connection the postgresql, error: %s", err.Error())
 		return
 	}
-	testQueries = New(conn)
+	testQueries = New(testDb)
 	// 测试程序运行
 	os.Exit(m.Run())
 }
