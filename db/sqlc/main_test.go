@@ -2,7 +2,7 @@ package db
 
 import (
 	"database/sql"
-	"github.com/patchbrain/simple-bank/internal/util"
+	"github.com/patchbrain/simple-bank/util"
 	"log"
 	"math/rand"
 	"os"

@@ -151,16 +151,15 @@ func TestTxExecDeadlock(t *testing.T) {
 }
 
 func TestGetAccountForUpdate(t *testing.T) {
-	store := NewStore(testDb)
 	account1 := createARandomAccount(t)
 	errChan := make(chan error)
 
 	for i := 0; i < 2; i++ {
 		go func() {
-			tx, _ := store.db.BeginTx(context.Background(), nil)
-			_, err := store.GetAccountForUpdate(context.Background(), account1.ID)
+			tx, _ := testDb.BeginTx(context.Background(), nil)
+			_, err := testQueries.GetAccountForUpdate(context.Background(), account1.ID)
 			time.Sleep(200 * time.Millisecond)
-			_, err = store.UpdateAccountBalance(context.Background(), UpdateAccountBalanceParams{
+			_, err = testQueries.UpdateAccountBalance(context.Background(), UpdateAccountBalanceParams{
 				ID:      account1.ID,
 				Balance: account1.Balance,
 			})

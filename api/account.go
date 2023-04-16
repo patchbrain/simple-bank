@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/patchbrain/simple-bank/internal/db"
+	"github.com/patchbrain/simple-bank/db/sqlc"
 	"net/http"
 )
 

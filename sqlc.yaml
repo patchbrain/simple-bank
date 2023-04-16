@@ -1,12 +1,12 @@
 version: "1"
 packages:
   - name: "db"
-    path: "internal/db"
+    path: "db/sqlc"
     queries: "./db/query/"
     schema: "./db/migration/"
     engine: "postgresql"
     emit_prepared_queries: false
-    emit_interface: false
+    emit_interface: true
     emit_exact_table_names: false
     # 把json文本生成到结构体中
     emit_json_tags: true

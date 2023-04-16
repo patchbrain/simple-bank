@@ -2,7 +2,7 @@ package db
 
 import (
 	"context"
-	"github.com/patchbrain/simple-bank/internal/util"
+	"github.com/patchbrain/simple-bank/util"
 	"math/rand"
 	"testing"
 

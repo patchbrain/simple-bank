@@ -3,7 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
-	"github.com/patchbrain/simple-bank/internal/util"
+	"github.com/patchbrain/simple-bank/util"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
