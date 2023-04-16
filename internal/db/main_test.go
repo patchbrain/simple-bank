@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"github.com/patchbrain/simple-bank/internal/util"
 	"log"
 	"math/rand"
 	"os"
@@ -14,16 +15,16 @@ import (
 var testQueries *Queries
 var testDb *sql.DB
 
-const (
-	dbDriver = "postgres"
-	dbSource = "postgresql://root:123456@localhost:5432/simple-bank?sslmode=disable"
-)
-
 func TestMain(m *testing.M) {
 	rand.Seed(time.Now().UnixNano())
 	var err error
+	cfg, err := util.LoadConfig("../..")
+	if err != nil {
+		log.Fatalf("fail to read config, error: %s", err.Error())
+		return
+	}
 	// 连接数据库
-	testDb, err = sql.Open(dbDriver, dbSource)
+	testDb, err = sql.Open(cfg.DbDriver, cfg.DbSource)
 	if err != nil {
 		log.Fatalf("fail to connection the postgresql, error: %s", err.Error())
 		return
