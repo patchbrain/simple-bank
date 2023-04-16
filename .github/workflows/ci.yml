@@ -21,6 +21,8 @@ jobs:
           POSTGRES_USER: root
           POSTGRES_PASSWORD: 123456
           POSTGRES_DB: simple-bank
+        ports:
+          - 5432:5432
         # 符号>-是YAML语法中的一种表示多行字符串的方式，它的意思是将后面的多行文本合并为一行，并用空格分隔，同时去掉末尾的换行符。
         options: >-
           --health-cmd pg_isready
