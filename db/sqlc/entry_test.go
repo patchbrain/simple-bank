@@ -3,123 +3,56 @@ package db
 import (
 	"context"
 	"github.com/patchbrain/simple-bank/util"
-	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
 
-// getRandomIdMust 获取一个AccountId，如果没有就创建一个
-func getRandomIdMust(t *testing.T) int64 {
-	count, err := testQueries.CountAccounts(context.Background())
-	require.NoError(t, err)
-
-	if count == 0 {
-		// 没有账户则先创建一个账户
-		tempAccount := createARandomAccount(t)
-		count++
-		return tempAccount.ID
-	}
-	firstAccount, err := testQueries.GetFirstAccount(context.Background())
-	require.NoError(t, err)
-	return util.RandomAccountId(firstAccount.ID, count)
-}
-
-func createARandomEntry(t *testing.T) Entry {
-	id := getRandomIdMust(t)
-
-	account1, err := testQueries.GetAccount(context.Background(), id)
-	require.NoError(t, err)
-	require.NotEmpty(t, account1)
-
-	arg1 := CreateEntryParams{
-		AccountID: id,
-		Amount:    util.RandomAmount(account1.Balance),
-	}
-	entry1, err := testQueries.CreateEntry(context.Background(), arg1)
-	require.NoError(t, err)
-	require.NotEmpty(t, entry1)
-	require.Equal(t, entry1.Amount, arg1.Amount)
-	require.Equal(t, entry1.AccountID, arg1.AccountID)
-
-	require.NotZero(t, entry1.ID)
-	require.NotZero(t, entry1.CreatedAt)
-
-	if entry1.Amount < 0 {
-		// 确保足够扣钱
-		require.Greater(t, account1.Balance, -entry1.Amount)
-	}
-
-	arg2 := UpdateAccountBalanceParams{
-		ID:      arg1.AccountID,
-		Balance: account1.Balance + arg1.Amount,
-	}
-	account2, err := testQueries.UpdateAccountBalance(context.Background(), arg2)
-	require.NoError(t, err)
-	require.NotEmpty(t, account2)
-	require.Equal(t, account2.Balance, account1.Balance+arg1.Amount)
-
-	return entry1
-}
-
-func createRandomEntryForId(t *testing.T, id int64) Entry {
-	account1, err := testQueries.GetAccount(context.Background(), id)
-	require.NoError(t, err)
-	require.NotEmpty(t, account1)
-
-	arg1 := CreateEntryParams{
-		AccountID: id,
-		Amount:    util.RandomAmount(account1.Balance),
-	}
-	entry1, err := testQueries.CreateEntry(context.Background(), arg1)
-	require.NoError(t, err)
-	require.NotEmpty(t, entry1)
-	require.Equal(t, entry1.Amount, arg1.Amount)
-	require.Equal(t, entry1.AccountID, arg1.AccountID)
-
-	require.NotZero(t, entry1.ID)
-	require.NotZero(t, entry1.CreatedAt)
-
-	if entry1.Amount < 0 {
-		// 确保足够扣钱
-		require.Greater(t, account1.Balance, -entry1.Amount)
-	}
-
-	arg2 := UpdateAccountBalanceParams{
-		ID:      arg1.AccountID,
-		Balance: account1.Balance + arg1.Amount,
-	}
-	account2, err := testQueries.UpdateAccountBalance(context.Background(), arg2)
-	require.NoError(t, err)
-	require.NotEmpty(t, account2)
-	require.Equal(t, account2.Balance, account1.Balance+arg1.Amount)
-
-	return entry1
-}
-
 func TestCreateEntry(t *testing.T) {
-	createARandomEntry(t)
+	account1 := createARandomAccount(t)
+	entry, err := testQueries.CreateEntry(context.Background(), CreateEntryParams{
+		AccountID: account1.ID,
+		Amount:    util.RandomAmount(account1.ID),
+	})
+
+	require.NoError(t, err)
+	require.NotEmpty(t, entry)
+	require.NotZero(t, entry.ID)
+	require.NotZero(t, entry.CreatedAt)
 }
 
 func TestGetEntry(t *testing.T) {
-	createARandomEntry(t)
-	count, err := testQueries.CountEntries(context.Background())
+	account1 := createARandomAccount(t)
+	entry1, err := testQueries.CreateEntry(context.Background(), CreateEntryParams{
+		AccountID: account1.ID,
+		Amount:    util.RandomAmount(account1.ID),
+	})
+
 	require.NoError(t, err)
-	firstEntry, err := testQueries.GetFirstEntry(context.Background())
+	require.NotEmpty(t, entry1)
+	require.NotZero(t, entry1.ID)
+	require.NotZero(t, entry1.CreatedAt)
+
+	entry2, err := testQueries.GetEntry(context.Background(), entry1.ID)
 	require.NoError(t, err)
-	id := rand.Int63n(count) + firstEntry.ID
-	entry, err := testQueries.GetEntry(context.Background(), id)
-	require.NoError(t, err)
-	require.NotEmpty(t, entry)
+	require.NotEmpty(t, entry2)
+	require.Equal(t, entry2.Amount, entry1.Amount)
+	require.Equal(t, entry2.AccountID, entry1.AccountID)
+	require.WithinDuration(t, entry1.CreatedAt, entry2.CreatedAt, time.Second)
 }
 
 func TestListEntryByAccountId(t *testing.T) {
-	id := getRandomIdMust(t)
-	for i := 1; i < 11; i++ {
-		createRandomEntryForId(t, id)
+	account1 := createARandomAccount(t)
+	for i := 0; i < 10; i++ {
+		testQueries.CreateEntry(context.Background(), CreateEntryParams{
+			AccountID: account1.ID,
+			Amount:    util.RandomAmount(account1.Balance),
+		})
 	}
+
 	arg := ListEntryByAccountIdParams{
-		AccountID: id,
+		AccountID: account1.ID,
 		Limit:     5,
 		Offset:    5,
 	}
