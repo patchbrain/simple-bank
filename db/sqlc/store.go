@@ -50,11 +50,11 @@ type TxTransferParam struct {
 }
 
 type TxTransferResult struct {
-	transfer    Transfer
-	fromAccount Account
-	toAccount   Account
-	fromEntry   Entry
-	toEntry     Entry
+	Transfer    Transfer
+	FromAccount Account
+	ToAccount   Account
+	FromEntry   Entry
+	ToEntry     Entry
 }
 
 var txCtxKey = struct {
@@ -66,7 +66,7 @@ func (s *SQLStore) TxTransfer(ctx context.Context, param TxTransferParam) (TxTra
 	err := s.txExec(ctx, func(queries *Queries) error {
 		//txName := ctx.Value(txCtxKey)
 
-		//log.Println(txName, "create transfer")
+		//log.Println(txName, "create Transfer")
 		transfer, err := s.CreateTransfer(context.Background(), CreateTransferParams{
 			FromAccountID: param.FromAccountId,
 			ToAccountID:   param.ToAccountId,
@@ -75,7 +75,7 @@ func (s *SQLStore) TxTransfer(ctx context.Context, param TxTransferParam) (TxTra
 		if err != nil {
 			return err
 		}
-		result.transfer = transfer
+		result.Transfer = transfer
 
 		//log.Println(txName, "create entry1")
 		fromEntry, err := s.CreateEntry(context.Background(), CreateEntryParams{
@@ -85,7 +85,7 @@ func (s *SQLStore) TxTransfer(ctx context.Context, param TxTransferParam) (TxTra
 		if err != nil {
 			return err
 		}
-		result.fromEntry = fromEntry
+		result.FromEntry = fromEntry
 
 		//log.Println(txName, "create entry2")
 		toEntry, err := s.CreateEntry(context.Background(), CreateEntryParams{
@@ -95,12 +95,12 @@ func (s *SQLStore) TxTransfer(ctx context.Context, param TxTransferParam) (TxTra
 		if err != nil {
 			return err
 		}
-		result.toEntry = toEntry
+		result.ToEntry = toEntry
 
 		if param.FromAccountId < param.ToAccountId {
-			result.fromAccount, result.toAccount, err = addMoney(ctx, s.Queries, param.FromAccountId, -param.TransferAmount, param.ToAccountId, param.TransferAmount)
+			result.FromAccount, result.ToAccount, err = addMoney(ctx, s.Queries, param.FromAccountId, -param.TransferAmount, param.ToAccountId, param.TransferAmount)
 		} else {
-			result.toAccount, result.fromAccount, err = addMoney(ctx, s.Queries, param.ToAccountId, param.TransferAmount, param.FromAccountId, -param.TransferAmount)
+			result.ToAccount, result.FromAccount, err = addMoney(ctx, s.Queries, param.ToAccountId, param.TransferAmount, param.FromAccountId, -param.TransferAmount)
 		}
 
 		return err

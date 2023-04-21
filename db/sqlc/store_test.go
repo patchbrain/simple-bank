@@ -42,8 +42,8 @@ func TestTxExec(t *testing.T) {
 		res := <-resChan
 		require.NotEmpty(t, res)
 
-		// test transfer
-		transfer := res.transfer
+		// test Transfer
+		transfer := res.Transfer
 		require.NotEmpty(t, transfer)
 		require.Equal(t, transfer.FromAccountID, param.FromAccountId)
 		require.Equal(t, transfer.ToAccountID, param.ToAccountId)
@@ -55,29 +55,29 @@ func TestTxExec(t *testing.T) {
 		require.NoError(t, err)
 
 		// test entry
-		fromEntry := res.fromEntry
+		fromEntry := res.FromEntry
 		require.NotEmpty(t, fromEntry)
 		require.Equal(t, fromEntry.Amount, -param.TransferAmount)
 		require.Equal(t, fromEntry.AccountID, param.FromAccountId)
 		_, err = store.GetEntry(context.Background(), fromEntry.ID)
 		require.NoError(t, err)
 
-		toEntry := res.toEntry
+		toEntry := res.ToEntry
 		require.NotEmpty(t, toEntry)
 		require.Equal(t, toEntry.Amount, param.TransferAmount)
 		require.Equal(t, toEntry.AccountID, param.ToAccountId)
 		_, err = store.GetEntry(context.Background(), toEntry.ID)
 		require.NoError(t, err)
 
-		log.Printf(">> tx: %d %d\n", res.fromAccount.Balance, res.toAccount.Balance)
+		log.Printf(">> tx: %d %d\n", res.FromAccount.Balance, res.ToAccount.Balance)
 
 		// test account
-		fromAccount := res.fromAccount
+		fromAccount := res.FromAccount
 		require.NotEmpty(t, fromAccount)
 		require.Equal(t, fromAccount.ID, transfer.FromAccountID)
 		diff1 := account1.Balance - fromAccount.Balance
 
-		toAccount := res.toAccount
+		toAccount := res.ToAccount
 		require.NotEmpty(t, toAccount)
 		require.Equal(t, toAccount.ID, transfer.ToAccountID)
 		diff2 := toAccount.Balance - account2.Balance
