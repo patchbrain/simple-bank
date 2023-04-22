@@ -11,8 +11,8 @@ import (
 
 func TestTxExec(t *testing.T) {
 	store := NewStore(testDb)
-	account1 := createARandomAccount(t)
-	account2 := createARandomAccount(t)
+	account1 := createRandomAccount(t)
+	account2 := createRandomAccount(t)
 	log.Printf("start: %d %d\n", account1.Balance, account2.Balance)
 	transferM := make(map[int]bool)
 	n := 10
@@ -106,8 +106,8 @@ func TestTxExec(t *testing.T) {
 
 func TestTxExecDeadlock(t *testing.T) {
 	store := NewStore(testDb)
-	account1 := createARandomAccount(t)
-	account2 := createARandomAccount(t)
+	account1 := createRandomAccount(t)
+	account2 := createRandomAccount(t)
 	log.Printf("start: %d %d\n", account1.Balance, account2.Balance)
 
 	n := 10
@@ -151,7 +151,7 @@ func TestTxExecDeadlock(t *testing.T) {
 }
 
 func TestGetAccountForUpdate(t *testing.T) {
-	account1 := createARandomAccount(t)
+	account1 := createRandomAccount(t)
 	errChan := make(chan error)
 
 	for i := 0; i < 2; i++ {

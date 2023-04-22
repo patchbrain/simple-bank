@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
 	"time"
@@ -55,4 +56,9 @@ func RandomTransferAmount(remain int64) int64 {
 // RandomAccountId 随机生成一个合法的AccountID
 func RandomAccountId(n int64, count int64) int64 {
 	return RandomInt64(n, n+count-1)
+}
+
+// RandomEmail 随机生成一个email地址
+func RandomEmail() string {
+	return fmt.Sprintf("%s@email.com", RandomString(8))
 }

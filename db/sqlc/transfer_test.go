@@ -13,8 +13,8 @@ import (
 //	require.NoError(t, err)
 //
 //	if count < 2 {
-//		a1 := createARandomAccount(t)
-//		a2 := createARandomAccount(t)
+//		a1 := createRandomAccount(t)
+//		a2 := createRandomAccount(t)
 //		require.Equal(t, a1.ID+1, a2.ID)
 //	}
 //
@@ -79,8 +79,8 @@ import (
 //}
 
 func TestCreateTransfer(t *testing.T) {
-	account1 := createARandomAccount(t)
-	account2 := createARandomAccount(t)
+	account1 := createRandomAccount(t)
+	account2 := createRandomAccount(t)
 
 	transfer, err := testQueries.CreateTransfer(context.Background(), CreateTransferParams{
 		FromAccountID: account1.ID,
@@ -92,8 +92,8 @@ func TestCreateTransfer(t *testing.T) {
 }
 
 func TestGetTransfer(t *testing.T) {
-	account1 := createARandomAccount(t)
-	account2 := createARandomAccount(t)
+	account1 := createRandomAccount(t)
+	account2 := createRandomAccount(t)
 
 	transfer1, err := testQueries.CreateTransfer(context.Background(), CreateTransferParams{
 		FromAccountID: account1.ID,
@@ -113,8 +113,8 @@ func TestGetTransfer(t *testing.T) {
 }
 
 func TestListTransferByFromId(t *testing.T) {
-	account1 := createARandomAccount(t)
-	account2 := createARandomAccount(t)
+	account1 := createRandomAccount(t)
+	account2 := createRandomAccount(t)
 
 	for i := 0; i < 10; i++ {
 		testQueries.CreateTransfer(context.Background(), CreateTransferParams{
@@ -137,8 +137,8 @@ func TestListTransferByFromId(t *testing.T) {
 }
 
 func TestListTransferByToId(t *testing.T) {
-	account1 := createARandomAccount(t)
-	account2 := createARandomAccount(t)
+	account1 := createRandomAccount(t)
+	account2 := createRandomAccount(t)
 
 	for i := 0; i < 10; i++ {
 		testQueries.CreateTransfer(context.Background(), CreateTransferParams{
@@ -161,8 +161,8 @@ func TestListTransferByToId(t *testing.T) {
 }
 
 func Test_ListTransferByFromIdAndToId(t *testing.T) {
-	account1 := createARandomAccount(t)
-	account2 := createARandomAccount(t)
+	account1 := createRandomAccount(t)
+	account2 := createRandomAccount(t)
 
 	for i := 0; i < 10; i++ {
 		testQueries.CreateTransfer(context.Background(), CreateTransferParams{

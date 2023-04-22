@@ -10,7 +10,7 @@ import (
 )
 
 func TestCreateEntry(t *testing.T) {
-	account1 := createARandomAccount(t)
+	account1 := createRandomAccount(t)
 	entry, err := testQueries.CreateEntry(context.Background(), CreateEntryParams{
 		AccountID: account1.ID,
 		Amount:    util.RandomAmount(account1.ID),
@@ -23,7 +23,7 @@ func TestCreateEntry(t *testing.T) {
 }
 
 func TestGetEntry(t *testing.T) {
-	account1 := createARandomAccount(t)
+	account1 := createRandomAccount(t)
 	entry1, err := testQueries.CreateEntry(context.Background(), CreateEntryParams{
 		AccountID: account1.ID,
 		Amount:    util.RandomAmount(account1.ID),
@@ -43,7 +43,7 @@ func TestGetEntry(t *testing.T) {
 }
 
 func TestListEntryByAccountId(t *testing.T) {
-	account1 := createARandomAccount(t)
+	account1 := createRandomAccount(t)
 	for i := 0; i < 10; i++ {
 		testQueries.CreateEntry(context.Background(), CreateEntryParams{
 			AccountID: account1.ID,
