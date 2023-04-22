@@ -1,6 +1,8 @@
 package api
 
 import (
+	"database/sql"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 	db "github.com/patchbrain/simple-bank/db/sqlc"
@@ -51,6 +53,12 @@ func (s *Server) createUser(ctx *gin.Context) {
 				return
 			}
 		}
+
+		if errors.Is(err, sql.ErrNoRows) {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
