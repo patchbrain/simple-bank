@@ -7,6 +7,7 @@ import (
 	"github.com/lib/pq"
 	db "github.com/patchbrain/simple-bank/db/sqlc"
 	"github.com/patchbrain/simple-bank/util"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"time"
 )
@@ -18,7 +19,7 @@ type createUserRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 }
 
-type createUserResponse struct {
+type UserResponse struct {
 	Username          string    `json:"username"`
 	FullName          string    `json:"full_name"`
 	Email             string    `json:"email"`
@@ -63,12 +64,69 @@ func (s *Server) createUser(ctx *gin.Context) {
 		return
 	}
 
-	rsp := createUserResponse{
+	rsp := UserResponse{
 		Username:          user.Username,
 		FullName:          user.FullName,
 		Email:             user.Email,
 		PasswordChangedAt: user.PasswordChangedAt,
 		CreatedAt:         user.CreatedAt,
 	}
+	ctx.JSON(http.StatusOK, rsp)
+}
+
+type loginUserRequest struct {
+	Username string `json:"username" binding:"required,alphanum"`
+	Password string `json:"password" binding:"required,min=6"`
+}
+
+type LoginUserResponse struct {
+	Token    string       `json:"token"`
+	UserInfo UserResponse `json:"user_info"`
+}
+
+func (s *Server) loginUser(ctx *gin.Context) {
+	var req loginUserRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	user, err := s.Store.GetUser(ctx, req.Username)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	err = util.CheckPassword(req.Password, user.PasswordHashed)
+	if err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+			return
+		}
+
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	token, err := s.TokenMaker.CreateToken(user.Username, s.Config.TokenDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	var rsp LoginUserResponse
+	rsp.UserInfo = UserResponse{
+		Username:  user.Username,
+		FullName:  user.FullName,
+		Email:     user.Email,
+		CreatedAt: user.CreatedAt,
+	}
+	rsp.Token = token
+
 	ctx.JSON(http.StatusOK, rsp)
 }

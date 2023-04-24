@@ -223,7 +223,7 @@ func TestCreateUser(t *testing.T) {
 			// 代表GetAccount函数必须执行一次，且执行所返回的值是account，err
 			tc.createStub(store)
 
-			server := NewServer(store)
+			server := newTestServer(store)
 			recorder := httptest.NewRecorder() // http响应记录器
 
 			// 应该符合api的uri
@@ -251,7 +251,7 @@ func requireBodyMatchUser(t *testing.T, body *bytes.Buffer, user db.User) {
 	data, err := ioutil.ReadAll(body)
 	require.NoError(t, err)
 
-	var userRsp = createUserResponse{}
+	var userRsp = UserResponse{}
 	err = json.Unmarshal(data, &userRsp)
 	require.NoError(t, err)
 
