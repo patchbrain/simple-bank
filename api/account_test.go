@@ -90,7 +90,7 @@ func TestGetAccount(t *testing.T) {
 			// 代表GetAccount函数必须执行一次，且执行所返回的值是account，err
 			tc.createStub(store)
 
-			server := newTestServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder() // http响应记录器
 
 			// 应该符合api的uri
@@ -183,7 +183,7 @@ func TestListAccount(t *testing.T) {
 			// 代表GetAccount函数必须执行一次，且执行所返回的值是account，err
 			tc.createStub(store)
 
-			server := newTestServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder() // http响应记录器
 
 			// 应该符合api的uri
@@ -270,7 +270,7 @@ func TestCreateAccount(t *testing.T) {
 			// 代表GetAccount函数必须执行一次，且执行所返回的值是account，err
 			tc.createStub(store)
 
-			server := newTestServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder() // http响应记录器
 
 			// 应该符合api的uri

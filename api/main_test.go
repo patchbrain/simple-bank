@@ -4,22 +4,20 @@ import (
 	"github.com/gin-gonic/gin"
 	db "github.com/patchbrain/simple-bank/db/sqlc"
 	"github.com/patchbrain/simple-bank/util"
-	"log"
+	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
 	"time"
 )
 
-func newTestServer(store db.Store) *Server {
+func newTestServer(t *testing.T, store db.Store) *Server {
 	config := util.Config{
 		TokenSecretKey: "qweasdzxqweasdzxqweasdzxqweasdzx",
 		TokenDuration:  time.Minute,
 	}
 
 	s, err := NewServer(config, store)
-	if err != nil {
-		log.Fatalf("fail to start the test server, err: %s\n", err.Error())
-	}
+	require.NoError(t, err)
 
 	return s
 }
