@@ -11,41 +11,41 @@ on: # 指定这个工作流程的触发条件
 
 jobs: # 指定这个工作流程包含的任务
 
-test: # 给这个任务起一个名字，叫做test
-  runs-on: ubuntu-latest # 指定这个任务运行在最新的ubuntu系统上
+  test: # 给这个任务起一个名字，叫做test
+    runs-on: ubuntu-latest # 指定这个任务运行在最新的ubuntu系统上
 
-services: # 指定这个任务需要的服务
-  postgres: # 需要一个postgres数据库服务
-    image: postgres:latest # 使用最新的postgres镜像
-    env: # 设置环境变量
-      POSTGRES_USER: root # 数据库用户名为root
-      POSTGRES_PASSWORD: 123456 # 数据库密码为123456
-      POSTGRES_DB: simple-bank # 数据库名称为simple-bank
-    ports: # 设置端口映射
-      - 5432:5432 # 将容器的5432端口映射到主机的5432端口
-    # 符号>-是YAML语法中的一种表示多行字符串的方式，它的意思是将后面的多行文本合并为一行，并用空格分隔，同时去掉末尾的换行符。
-    options: >- 
-      --health-cmd pg_isready
-      --health-interval 10s
-      --health-timeout 5s
-      --health-retries 5
+    services: # 指定这个任务需要的服务
+      postgres: # 需要一个postgres数据库服务
+        image: postgres:latest # 使用最新的postgres镜像
+        env: # 设置环境变量
+          POSTGRES_USER: root # 数据库用户名为root
+          POSTGRES_PASSWORD: 123456 # 数据库密码为123456
+          POSTGRES_DB: simple-bank # 数据库名称为simple-bank
+        ports: # 设置端口映射
+          - 5432:5432 # 将容器的5432端口映射到主机的5432端口
+        # 符号>-是YAML语法中的一种表示多行字符串的方式，它的意思是将后面的多行文本合并为一行，并用空格分隔，同时去掉末尾的换行符。
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
-steps: # 指定这个任务包含的步骤
-- uses: actions/checkout@v3 # 使用一个预定义的动作，叫做actions/checkout@v3，用于将代码仓库克隆到运行环境中
+    steps: # 指定这个任务包含的步骤
+      - uses: actions/checkout@v3 # 使用一个预定义的动作，叫做actions/checkout@v3，用于将代码仓库克隆到运行环境中
 
-- name: Set up Go # 给这个步骤起一个名字，叫做Set up Go
-  uses: actions/setup-go@v3 # 使用另一个预定义的动作，叫做actions/setup-go@v3，用于在运行环境中安装Go语言
-  with:
-    go-version: 1.18 # 指定Go语言的版本为1.18
+      - name: Set up Go # 给这个步骤起一个名字，叫做Set up Go
+        uses: actions/setup-go@v3 # 使用另一个预定义的动作，叫做actions/setup-go@v3，用于在运行环境中安装Go语言
+        with:
+          go-version: 1.18 # 指定Go语言的版本为1.18
 
-- name: Install golang-migrate # 给这个步骤起一个名字，叫做Install golang-migrate
-  run: | # 执行以下命令
-    curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.2/migrate.linux-amd64.tar.gz | tar xvz
-    sudo mv migrate /usr/bin
-    which migrate
+      - name: Install golang-migrate # 给这个步骤起一个名字，叫做Install golang-migrate
+        run: | # 执行以下命令
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.2/migrate.linux-amd64.tar.gz | tar xvz
+          sudo mv migrate /usr/bin
+          which migrate
 
-- name: Run migrations # 给这个步骤起一个名字，叫做Run migrations
-  run: make migrateup # 执行make migrateup命令，用于执行数据库迁移操作
+      - name: Run migrations # 给这个步骤起一个名字，叫做Run migrations
+        run: make migrateup # 执行make migrateup命令，用于执行数据库迁移操作
 
-- name: Test # 给这个步骤起一个名字，叫做Test
-  run: make test # 执行make test命令，用于测试Go代码
+      - name: Test # 给这个步骤起一个名字，叫做Test
+        run: make test # 执行make test命令，用于测试Go代码
