@@ -43,10 +43,11 @@ func route(s *Server) {
 	r.POST("/users", s.createUser)
 	r.POST("/users/login", s.loginUser)
 
-	r.POST("/accounts", s.createAccount)
-	r.GET("/accounts/:id", s.getAccount)
-	r.GET("/accounts", s.listAccounts)
-	r.POST("/transfers", s.createTransfer)
+	authRoute := r.Group("/").Use(authMiddleware(s.TokenMaker))
+	authRoute.POST("/accounts", s.createAccount)
+	authRoute.GET("/accounts/:id", s.getAccount)
+	authRoute.GET("/accounts", s.listAccounts)
+	authRoute.POST("/transfers", s.createTransfer)
 
 	s.Router = r
 }

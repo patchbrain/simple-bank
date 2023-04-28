@@ -34,6 +34,41 @@ func TestAuthMiddleware(t *testing.T) {
 				require.Equal(t, recorder.Code, http.StatusOK)
 			},
 		},
+		{
+			name: "No AuthHeader",
+			setupAuthHeader: func(t *testing.T, r *http.Request, maker token.Maker) {
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, recorder.Code, http.StatusUnauthorized)
+			},
+		},
+		{
+			name: "Unsupported Auth Type",
+			setupAuthHeader: func(t *testing.T, r *http.Request, maker token.Maker) {
+				addAuthHeader(t, maker, r, "unsupported", "user", time.Minute)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, recorder.Code, http.StatusUnauthorized)
+			},
+		},
+		{
+			name: "Error Format",
+			setupAuthHeader: func(t *testing.T, r *http.Request, maker token.Maker) {
+				addAuthHeader(t, maker, r, "", "user", time.Minute)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, recorder.Code, http.StatusUnauthorized)
+			},
+		},
+		{
+			name: "Expired Token",
+			setupAuthHeader: func(t *testing.T, r *http.Request, maker token.Maker) {
+				addAuthHeader(t, maker, r, authTypeBearer, "user", -time.Minute)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, recorder.Code, http.StatusUnauthorized)
+			},
+		},
 	}
 
 	for _, tc := range testCases {
