@@ -1,7 +1,7 @@
 # This workflow will build a golang project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
-name: ci-test # 给这个工作流程起一个名字，叫做ci-test
+name: Run unit tests
 
 on: # 指定这个工作流程的触发条件
   push: # 当有代码推送时
