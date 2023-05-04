@@ -16,7 +16,7 @@ type Config struct {
 func LoadConfig(path string) (Config, error) {
 	viper.AddConfigPath(path)
 	viper.SetConfigName("app")
-	viper.SetConfigType("yaml")
+	viper.SetConfigType("env")
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
