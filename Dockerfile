@@ -14,6 +14,7 @@ COPY app.env .
 COPY db/migration ./migration
 COPY start.sh .
 COPY wait-for.sh .
+RUN chmod +x /app/start.sh
 
 # EXPOSE仅仅作为镜像创建者之间的交流
 EXPOSE 8080
