@@ -15,7 +15,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: "a38489744aec040bc840a50827d83165-1009029563.ap-southeast-1.elb.amazonaws.com"
+  - host: "api.kinghno3simplebank.club"
     http:
       paths:
       - pathType: Prefix
@@ -27,6 +27,6 @@ spec:
               number: 80
   tls:
   - hosts:
-    - a38489744aec040bc840a50827d83165-1009029563.ap-southeast-1.elb.amazonaws.com
+    - api.kinghno3simplebank.club
     # 证书保存的secret名称
     secretName: simple-bank-api-cert
