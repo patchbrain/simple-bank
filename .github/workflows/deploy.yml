@@ -23,7 +23,7 @@ jobs:
 
     - uses: azure/setup-kubectl@v3
       with:
-        version: 'v1.25'
+        version: 'v1.25.9'
       id: install
 
     - name: update kubectl config
@@ -34,7 +34,7 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v1
 
     - name: Load secret and save to app.env
-      run: aws secretsmanager get-secret-value --secret-id simple-bank --query SecretString --output text | jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' > app.env
+      run: aws secretsmanager get-secret-value --secret-id simple_bank --query SecretString --output text | jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' > app.env
 
     - name: Build, tag, and push docker image to Amazon ECR
       env:
@@ -43,7 +43,6 @@ jobs:
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -t $REGISTRY/$REPOSITORY:latest .
-#        将所有tag的image都推送
         docker push -a $REGISTRY/$REPOSITORY
 
     - name: Deploy image to Amazon EKS
