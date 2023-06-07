@@ -13,7 +13,7 @@ migratedown:
 migratedown1:
 	migrate -path ./db/migration -database "postgresql://root:123456@localhost:5432/simple-bank?sslmode=disable" -verbose down 1
 sqlc:
-	docker run --rm -v "D:\Code\simple-bank:/src" -w /src kjconroy/sqlc:1.17.2 generate
+	docker run --rm -v "D:\Work\GolangMasterClass\Simple-bank:/src" -w /src kjconroy/sqlc:1.17.2 generate
 test:
 	go test -v --cover ./...
 server:
