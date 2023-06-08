@@ -12,9 +12,10 @@ import (
 )
 
 func addAuthHeader(t *testing.T, maker token.Maker, r *http.Request, authHeaderType string, username string, duration time.Duration) {
-	token, err := maker.CreateToken(username, duration)
+	token, payload, err := maker.CreateToken(username, duration)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
+	require.NotEmpty(t, payload)
 
 	r.Header.Set(authHeaderKey, fmt.Sprintf("%s %s", authHeaderType, token))
 }
@@ -61,7 +62,7 @@ func TestAuthMiddleware(t *testing.T) {
 			},
 		},
 		{
-			name: "Expired Token",
+			name: "Expired AccessToken",
 			setupAuthHeader: func(t *testing.T, r *http.Request, maker token.Maker) {
 				addAuthHeader(t, maker, r, authTypeBearer, "user", -time.Minute)
 			},

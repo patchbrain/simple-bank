@@ -49,19 +49,105 @@ func EqCreateUserParams(arg db.CreateUserParams, password string) gomock.Matcher
 	}
 }
 
-func randomUser() (db.User, string) {
-	return db.User{
-		Username: util.RandomString(6),
-		FullName: util.RandomString(3),
-		Email:    util.RandomEmail(),
-	}, "secret"
+func randomUser(t *testing.T) (db.User, string) {
+	password := util.RandomString(6)
+	hashed, err := util.HashPassword(password)
+	require.NoError(t, err)
+	user := db.User{
+		PasswordHashed: hashed,
+		Username:       util.RandomString(6),
+		FullName:       util.RandomString(3),
+		Email:          util.RandomEmail(),
+	}
+	return user, password
+}
+
+func TestLoginUser(t *testing.T) {
+	user, password := randomUser(t)
+
+	testCases := []struct {
+		name          string
+		body          gin.H
+		createStub    func(store *mockdb.MockStore)
+		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
+	}{
+		{
+			name: "OK",
+			body: gin.H{
+				"username": user.Username,
+				"password": password,
+			},
+			createStub: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUser(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(user, nil)
+				store.EXPECT().CreateSession(gomock.Any(), gomock.Any()).Times(1)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusOK, recorder.Code)
+			},
+		},
+		{
+			name: "UserNotFound",
+			body: gin.H{
+				"username": user.Username,
+				"password": password,
+			},
+			createStub: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUser(gomock.Any(), gomock.Any()).Times(1).Return(db.User{}, sql.ErrNoRows)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, recorder.Code)
+			},
+		},
+		{
+			name: "InternalError",
+			body: gin.H{
+				"username": user.Username,
+				"password": password,
+			},
+			createStub: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUser(gomock.Any(), gomock.Any()).Times(1).Return(db.User{}, sql.ErrConnDone)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			store := mockdb.NewMockStore(ctrl)
+			// 建立stub
+			// 代表GetAccount函数必须执行一次，且执行所返回的值是account，err
+			tc.createStub(store)
+
+			server := newTestServer(t, store)
+			recorder := httptest.NewRecorder() // http响应记录器
+
+			// 应该符合api的uri
+			url := "/users/login"
+			bodyBytes, err := json.Marshal(createUserRequest{
+				Username: tc.body["username"].(string),
+				Password: tc.body["password"].(string),
+			})
+			require.NoError(t, err)
+
+			body := bytes.NewBuffer(bodyBytes)
+
+			request, err := http.NewRequest(http.MethodPost, url, body)
+			require.NoError(t, err)
+
+			server.Router.ServeHTTP(recorder, request) // 处理请求，stub起作用
+			tc.checkResponse(t, recorder)
+		})
+	}
 }
 
 func TestCreateUser(t *testing.T) {
 	// 一组正确的参数
-	user, password := randomUser()
-	hashed, err := util.HashPassword(password)
-	require.NoError(t, err)
+	user, password := randomUser(t)
 	passwordShort := password[:3]
 
 	testCases := []struct {
@@ -81,7 +167,7 @@ func TestCreateUser(t *testing.T) {
 			createStub: func(store *mockdb.MockStore) {
 				store.EXPECT().CreateUser(gomock.Any(), EqCreateUserParams(db.CreateUserParams{
 					Username:       user.Username,
-					PasswordHashed: hashed,
+					PasswordHashed: user.PasswordHashed,
 					FullName:       user.FullName,
 					Email:          user.Email,
 				}, password)).Times(1).Return(user, nil)
@@ -102,7 +188,7 @@ func TestCreateUser(t *testing.T) {
 			createStub: func(store *mockdb.MockStore) {
 				store.EXPECT().CreateUser(gomock.Any(), EqCreateUserParams(db.CreateUserParams{
 					Username:       user.Username,
-					PasswordHashed: hashed,
+					PasswordHashed: user.PasswordHashed,
 					FullName:       user.FullName,
 					Email:          "123",
 				}, password)).Times(0).Return(db.User{}, nil)
@@ -122,7 +208,7 @@ func TestCreateUser(t *testing.T) {
 			createStub: func(store *mockdb.MockStore) {
 				store.EXPECT().CreateUser(gomock.Any(), EqCreateUserParams(db.CreateUserParams{
 					Username:       "user.Username",
-					PasswordHashed: hashed,
+					PasswordHashed: user.PasswordHashed,
 					FullName:       user.FullName,
 					Email:          user.Email,
 				}, password)).Times(0).Return(db.User{}, nil)
@@ -142,7 +228,7 @@ func TestCreateUser(t *testing.T) {
 			createStub: func(store *mockdb.MockStore) {
 				store.EXPECT().CreateUser(gomock.Any(), EqCreateUserParams(db.CreateUserParams{
 					Username:       user.Username,
-					PasswordHashed: hashed,
+					PasswordHashed: user.PasswordHashed,
 					FullName:       user.FullName,
 					Email:          user.Email,
 				}, password)).Times(1).Return(db.User{}, sql.ErrNoRows)
@@ -152,7 +238,7 @@ func TestCreateUser(t *testing.T) {
 			},
 		},
 		{
-			name: "NotFound",
+			name: "InternalError",
 			body: gin.H{
 				"username":  user.Username,
 				"password":  password,
@@ -162,7 +248,7 @@ func TestCreateUser(t *testing.T) {
 			createStub: func(store *mockdb.MockStore) {
 				store.EXPECT().CreateUser(gomock.Any(), EqCreateUserParams(db.CreateUserParams{
 					Username:       user.Username,
-					PasswordHashed: hashed,
+					PasswordHashed: user.PasswordHashed,
 					FullName:       user.FullName,
 					Email:          user.Email,
 				}, password)).Times(1).Return(db.User{}, sql.ErrConnDone)
@@ -182,7 +268,7 @@ func TestCreateUser(t *testing.T) {
 			createStub: func(store *mockdb.MockStore) {
 				store.EXPECT().CreateUser(gomock.Any(), EqCreateUserParams(db.CreateUserParams{
 					Username:       user.Username,
-					PasswordHashed: hashed,
+					PasswordHashed: user.PasswordHashed,
 					FullName:       user.FullName,
 					Email:          user.Email,
 				}, password)).Times(0).Return(db.User{}, sql.ErrConnDone)
@@ -202,7 +288,7 @@ func TestCreateUser(t *testing.T) {
 			createStub: func(store *mockdb.MockStore) {
 				store.EXPECT().CreateUser(gomock.Any(), EqCreateUserParams(db.CreateUserParams{
 					Username:       user.Username,
-					PasswordHashed: hashed,
+					PasswordHashed: user.PasswordHashed,
 					FullName:       user.FullName,
 					Email:          user.Email,
 				}, password)).Times(1).Return(db.User{}, &pq.Error{Code: "23505"})

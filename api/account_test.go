@@ -30,7 +30,7 @@ func randomAccount(username string) db.Account {
 }
 
 func TestGetAccount(t *testing.T) {
-	user, _ := randomUser()
+	user, _ := randomUser(t)
 	account := randomAccount(user.Username)
 	testCases := []struct {
 		name            string
@@ -137,7 +137,7 @@ func TestGetAccount(t *testing.T) {
 func TestListAccount(t *testing.T) {
 	// 创建一组accounts
 	accounts := make([]db.Account, 0)
-	user, _ := randomUser()
+	user, _ := randomUser(t)
 	n := 5
 	for i := 0; i < n; i++ {
 		account := randomAccount(user.Username)

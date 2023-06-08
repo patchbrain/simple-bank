@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/lib/pq"
 	db "github.com/patchbrain/simple-bank/db/sqlc"
 	"github.com/patchbrain/simple-bank/util"
@@ -80,8 +81,12 @@ type loginUserRequest struct {
 }
 
 type LoginUserResponse struct {
-	Token    string       `json:"token"`
-	UserInfo UserResponse `json:"user_info"`
+	SessionId             uuid.UUID    `json:"session_id"`
+	AccessToken           string       `json:"access_token"`
+	AccessTokenExpiresAt  time.Time    `json:"access_token_expires_at"`
+	RefreshToken          string       `json:"refresh_token"`
+	RefreshTokenExpiresAt time.Time    `json:"refresh_token_expires_at"`
+	UserInfo              UserResponse `json:"user_info"`
 }
 
 func (s *Server) loginUser(ctx *gin.Context) {
@@ -113,7 +118,30 @@ func (s *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	token, err := s.TokenMaker.CreateToken(user.Username, s.Config.TokenDuration)
+	token, payload, err := s.TokenMaker.CreateToken(user.Username, s.Config.TokenDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	// 再创建一个refreshtoken
+	refreshToken, refreshPayload, err := s.TokenMaker.CreateToken(user.Username, s.Config.RefreshTokenDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	// 存入数据库
+	session, err := s.Store.CreateSession(ctx, db.CreateSessionParams{
+		ID:           refreshPayload.Id,
+		Username:     refreshPayload.Username,
+		RefreshToken: refreshToken,
+		// todo： 暂时以下两个字段为空
+		UserAgent: "",
+		ClientIp:  "",
+		IsBlocked: false,
+		ExpiredAt: refreshPayload.ExpireAt,
+	})
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -126,7 +154,11 @@ func (s *Server) loginUser(ctx *gin.Context) {
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
 	}
-	rsp.Token = token
+	rsp.SessionId = session.ID
+	rsp.AccessToken = token
+	rsp.AccessTokenExpiresAt = payload.ExpireAt
+	rsp.RefreshToken = refreshToken
+	rsp.RefreshTokenExpiresAt = refreshPayload.ExpireAt
 
 	ctx.JSON(http.StatusOK, rsp)
 }
