@@ -6,9 +6,14 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/patchbrain/simple-bank/api"
 	"github.com/patchbrain/simple-bank/db/sqlc"
+	"github.com/patchbrain/simple-bank/gapi"
+	"github.com/patchbrain/simple-bank/pb"
 	"github.com/patchbrain/simple-bank/util"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"log"
 	"math/rand"
+	"net"
 	"time"
 )
 
@@ -30,13 +35,38 @@ func main() {
 	}
 
 	q := db.NewStore(conn)
-	server, err := api.NewServer(cfg, q)
+	runGrpcServer(cfg, q)
+}
+
+func runGrpcServer(config util.Config, db db.Store) {
+	grpcServer := grpc.NewServer()            // 创建一个grpc服务器，用于监听端口、地址等
+	server, err := gapi.NewServer(config, db) // 创建一个实现服务接口的服务器
+	if err != nil {
+		log.Fatal("cannot create server:", err)
+	}
+	pb.RegisterSimpleBankServer(grpcServer, server) // 将server注册到grpcServer，从而使得grpcServer可以调用server中实现的方法来服务
+	reflection.Register(grpcServer)                 // 将服务的方法名、参数等信息公开，从而使客户端能够动态构建调用参数与响应来进行服务调用
+
+	listener, err := net.Listen("tcp", config.GRPCServerAddress)
+	if err != nil {
+		log.Fatal("cannot create listener:", err)
+	}
+
+	log.Printf("start grpc server at %s", listener.Addr().String())
+	err = grpcServer.Serve(listener)
+	if err != nil {
+		log.Fatal("fail to run grpcServer:", err)
+	}
+}
+
+func runGinServer(config util.Config, db db.Store) {
+	server, err := api.NewServer(config, db)
 	if err != nil {
 		log.Fatalf("fail to start the server, error: %s", err.Error())
 		return
 	}
 
-	if err := server.Start(cfg.ServerAddress); err != nil {
+	if err := server.Start(config.HTTPServerAddress); err != nil {
 		log.Fatalf("fail to start server: %s", err.Error())
 		return
 	}

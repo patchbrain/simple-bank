@@ -1,0 +1,59 @@
+Project simple_bank {
+  database_type: 'PostgreSQL'
+  Note: '''
+    # Simple Bank Database
+  '''
+}
+
+Table "users" as U {
+  "username" varchar [pk]
+  "password_hashed" varchar [not null]
+  "full_name" varchar [not null]
+  "email" varchar [unique, not null]
+  "password_changed_at" timestamptz [not null, default: '0001-01-01 00:00:00Z']
+  "created_at" timestamptz [not null, default: `now()`]
+}
+
+Table "accounts" {
+  "id" bigserial [pk, increment]
+  "owner" varchar [ref: > U.username, not null]
+  "balance" bigint [not null]
+  "currency" varchar [not null]
+  "created_at" timestamptz [not null, default: `now()`]
+
+Indexes {
+  owner
+  (owner,currency) [unique]
+}
+}
+
+Table "entries" {
+  "id" bigserial [pk, increment]
+  "account_id" bigint
+  "amount" bigint [not null, note: 'can be positive or negative']
+  "created_at" timestamptz [not null, default: `now()`]
+
+Indexes {
+  account_id
+}
+}
+
+Table "transfers" {
+  "id" bigserial [pk, increment]
+  "from_account_id" bigint
+  "to_account_id" bigint
+  "amount" bigint [not null, note: 'can not be negative']
+  "created_at" timestamptz [not null, default: `now()`]
+
+Indexes {
+  from_account_id
+  to_account_id
+  (from_account_id, to_account_id)
+}
+}
+
+Ref:"accounts"."id" < "entries"."account_id"
+
+Ref:"accounts"."id" < "transfers"."from_account_id"
+
+Ref:"accounts"."id" < "transfers"."to_account_id"

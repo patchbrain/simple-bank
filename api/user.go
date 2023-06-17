@@ -75,7 +75,7 @@ func (s *Server) createUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, rsp)
 }
 
-type loginUserRequest struct {
+type LoginUserRequest struct {
 	Username string `json:"username" binding:"required,alphanum"`
 	Password string `json:"password" binding:"required,min=6"`
 }
@@ -90,7 +90,7 @@ type LoginUserResponse struct {
 }
 
 func (s *Server) loginUser(ctx *gin.Context) {
-	var req loginUserRequest
+	var req LoginUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -137,8 +137,8 @@ func (s *Server) loginUser(ctx *gin.Context) {
 		Username:     refreshPayload.Username,
 		RefreshToken: refreshToken,
 		// todo： 暂时以下两个字段为空
-		UserAgent: "",
-		ClientIp:  "",
+		UserAgent: ctx.Request.UserAgent(),
+		ClientIp:  ctx.ClientIP(),
 		IsBlocked: false,
 		ExpiredAt: refreshPayload.ExpireAt,
 	})
