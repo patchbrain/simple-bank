@@ -15,8 +15,8 @@ message LoginUserRequest{
 message LoginUserResponse{
   string session_id = 1;
   string access_token = 2;
-  string access_token_expired_at = 3;
-  google.protobuf.Timestamp refresh_token = 4;
+  google.protobuf.Timestamp access_token_expired_at = 3;
+  string refresh_token = 4;
   google.protobuf.Timestamp refresh_token_expired_at = 5;
   User user = 6;
 }

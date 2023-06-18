@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	_ "github.com/golang/mock/mockgen/model"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/lib/pq"
 	"github.com/patchbrain/simple-bank/api"
 	"github.com/patchbrain/simple-bank/db/sqlc"
@@ -11,9 +13,11 @@ import (
 	"github.com/patchbrain/simple-bank/util"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/encoding/protojson"
 	"log"
 	"math/rand"
 	"net"
+	"net/http"
 	"time"
 )
 
@@ -35,6 +39,8 @@ func main() {
 	}
 
 	q := db.NewStore(conn)
+
+	go runGatewayServer(cfg, q)
 	runGrpcServer(cfg, q)
 }
 
@@ -56,6 +62,45 @@ func runGrpcServer(config util.Config, db db.Store) {
 	err = grpcServer.Serve(listener)
 	if err != nil {
 		log.Fatal("fail to run grpcServer:", err)
+	}
+}
+
+func runGatewayServer(config util.Config, db db.Store) {
+	server, err := gapi.NewServer(config, db) // 创建一个实现服务接口的服务器
+	if err != nil {
+		log.Fatal("cannot create server:", err)
+	}
+
+	// 传入的参数可以使得转换出的JSON数据是.proto文件中的驼峰式命名
+	grpcMux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+		MarshalOptions: protojson.MarshalOptions{
+			UseProtoNames: true,
+		},
+		UnmarshalOptions: protojson.UnmarshalOptions{
+			DiscardUnknown: true,
+		},
+	}))
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	err = pb.RegisterSimpleBankHandlerServer(ctx, grpcMux, server)
+	if err != nil {
+		log.Fatal("fail to register handler server: ", err)
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle("/", grpcMux)
+
+	listener, err := net.Listen("tcp", config.HTTPServerAddress)
+	if err != nil {
+		log.Fatal("cannot create listener:", err)
+	}
+
+	log.Printf("start HTTP gateway server at %s", listener.Addr().String())
+	err = http.Serve(listener, mux)
+	if err != nil {
+		log.Fatal("fail to run HTTP gateway server:", err)
 	}
 }
 

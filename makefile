@@ -27,8 +27,8 @@ db_schema:
 mock:
 	mockgen -destination db/mock/store.go -package mockdb github.com/patchbrain/simple-bank/db/sqlc Store
 proto:
-	rm -f pb/*.go
-	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative --go-grpc_out=pb --go-grpc_opt=paths=source_relative proto/*.proto
+	del /s pb\*.go
+	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative --go-grpc_out=pb --go-grpc_opt=paths=source_relative --grpc-gateway_out=pb --grpc-gateway_opt paths=source_relative proto/*.proto
 evans:
 	evans --port 8081 --host localhost -r repl
 .PHONY: postgres createdb dropdb migrateup migratedown migrateup1 migratedown1 sqlc test server mock db_docs db_schema proto evans
