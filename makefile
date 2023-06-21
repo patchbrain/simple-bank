@@ -28,7 +28,14 @@ mock:
 	mockgen -destination db/mock/store.go -package mockdb github.com/patchbrain/simple-bank/db/sqlc Store
 proto:
 	del /s pb\*.go
-	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative --go-grpc_out=pb --go-grpc_opt=paths=source_relative --grpc-gateway_out=pb --grpc-gateway_opt paths=source_relative proto/*.proto
+	del /s doc\swagger\*.swagger.json
+	del /s doc\statik\*.go
+	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative --go-grpc_out=pb --go-grpc_opt=paths=source_relative --grpc-gateway_out=pb --grpc-gateway_opt paths=source_relative \
+	--openapiv2_out=doc/swagger \
+	--openapiv2_opt=allow_merge=true \
+	--openapiv2_opt=merge_file_name=simple-bank \
+ 	proto/*.proto
+	statik -src=./doc/swagger -dest=./doc
 evans:
 	evans --port 8081 --host localhost -r repl
 .PHONY: postgres createdb dropdb migrateup migratedown migrateup1 migratedown1 sqlc test server mock db_docs db_schema proto evans

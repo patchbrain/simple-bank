@@ -3,14 +3,19 @@ package main
 import (
 	"context"
 	"database/sql"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/golang/mock/mockgen/model"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/lib/pq"
 	"github.com/patchbrain/simple-bank/api"
 	"github.com/patchbrain/simple-bank/db/sqlc"
+	_ "github.com/patchbrain/simple-bank/doc/statik"
 	"github.com/patchbrain/simple-bank/gapi"
 	"github.com/patchbrain/simple-bank/pb"
 	"github.com/patchbrain/simple-bank/util"
+	"github.com/rakyll/statik/fs"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -37,6 +42,19 @@ func main() {
 		log.Fatalf("fail to connection the postgresql, error: %s", err.Error())
 		return
 	}
+
+	// 迁移数据库
+	migration, err := migrate.New(cfg.MigrateUrl, cfg.DbSource)
+	if err != nil {
+		log.Fatalf("fail to create migration, err: %s", err.Error())
+	}
+
+	err = migration.Up()
+	if err != nil && err != migrate.ErrNoChange {
+		log.Fatalf("fail to migrate up, err: %s", err.Error())
+	}
+
+	log.Printf("succeed to migrate.\n")
 
 	q := db.NewStore(conn)
 
@@ -91,6 +109,13 @@ func runGatewayServer(config util.Config, db db.Store) {
 
 	mux := http.NewServeMux()
 	mux.Handle("/", grpcMux)
+
+	statikFS, err := fs.New()
+	if err != nil {
+		log.Fatal("fail to create statik file server: ", err)
+	}
+	swaggerFs := http.FileServer(statikFS)
+	mux.Handle("/swagger/", http.StripPrefix("/swagger/", swaggerFs))
 
 	listener, err := net.Listen("tcp", config.HTTPServerAddress)
 	if err != nil {

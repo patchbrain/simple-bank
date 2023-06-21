@@ -7,13 +7,14 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (username,
-                      password_hashed,
-                      full_name,
-                      email)
+                   password_hashed,
+                   full_name,
+                   email)
 VALUES ($1, $2, $3, $4) RETURNING username, password_hashed, full_name, email, password_changed_at, created_at
 `
 
@@ -51,6 +52,43 @@ WHERE username = $1 LIMIT 1
 
 func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUser, username)
+	var i User
+	err := row.Scan(
+		&i.Username,
+		&i.PasswordHashed,
+		&i.FullName,
+		&i.Email,
+		&i.PasswordChangedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateUser = `-- name: UpdateUser :one
+UPDATE users
+SET password_hashed     = coalesce($1, password_hashed),
+    full_name           = coalesce($2, full_name),
+    email               = coalesce($3, email),
+    password_changed_at = coalesce($4, password_changed_at)
+WHERE username = $5 RETURNING username, password_hashed, full_name, email, password_changed_at, created_at
+`
+
+type UpdateUserParams struct {
+	PasswordHashed    sql.NullString `json:"password_hashed"`
+	FullName          sql.NullString `json:"full_name"`
+	Email             sql.NullString `json:"email"`
+	PasswordChangedAt sql.NullTime   `json:"password_changed_at"`
+	Username          string         `json:"username"`
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateUser,
+		arg.PasswordHashed,
+		arg.FullName,
+		arg.Email,
+		arg.PasswordChangedAt,
+		arg.Username,
+	)
 	var i User
 	err := row.Scan(
 		&i.Username,

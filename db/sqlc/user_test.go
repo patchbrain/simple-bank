@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"github.com/patchbrain/simple-bank/util"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -50,4 +51,51 @@ func TestGetUser(t *testing.T) {
 
 	require.WithinDuration(t, user1.CreatedAt, user2.CreatedAt, time.Second)
 	require.WithinDuration(t, user1.PasswordChangedAt, user2.PasswordChangedAt, time.Second)
+}
+
+func TestUpdateUserOnlyForFullName(t *testing.T) {
+	oldUser := createRandomUser(t)
+	newFullName := util.RandomOwner()
+	newUser, err := testQueries.UpdateUser(context.Background(), UpdateUserParams{
+		FullName: sql.NullString{String: newFullName, Valid: true},
+		Username: oldUser.Username,
+	})
+
+	require.NoError(t, err)
+	require.NotEqual(t, oldUser.FullName, newUser.FullName)
+	require.Equal(t, oldUser.Email, newUser.Email)
+	require.Equal(t, oldUser.Username, newUser.Username)
+	require.Equal(t, oldUser.PasswordHashed, newUser.PasswordHashed)
+}
+
+func TestUpdateUserOnlyForEmail(t *testing.T) {
+	oldUser := createRandomUser(t)
+	newEmail := util.RandomEmail()
+	newUser, err := testQueries.UpdateUser(context.Background(), UpdateUserParams{
+		Email:    sql.NullString{String: newEmail, Valid: true},
+		Username: oldUser.Username,
+	})
+
+	require.NoError(t, err)
+	require.NotEqual(t, oldUser.Email, newUser.Email)
+	require.Equal(t, oldUser.FullName, newUser.FullName)
+	require.Equal(t, oldUser.Username, newUser.Username)
+	require.Equal(t, oldUser.PasswordHashed, newUser.PasswordHashed)
+}
+
+func TestUpdateUserOnlyForPasswordHashed(t *testing.T) {
+	oldUser := createRandomUser(t)
+	newPasswordHashed, err := util.HashPassword(util.RandomString(6))
+	require.NoError(t, err)
+
+	newUser, err := testQueries.UpdateUser(context.Background(), UpdateUserParams{
+		PasswordHashed: sql.NullString{String: newPasswordHashed, Valid: true},
+		Username:       oldUser.Username,
+	})
+
+	require.NoError(t, err)
+	require.NotEqual(t, oldUser.PasswordHashed, newUser.PasswordHashed)
+	require.Equal(t, oldUser.FullName, newUser.FullName)
+	require.Equal(t, oldUser.Username, newUser.Username)
+	require.Equal(t, oldUser.Email, newUser.Email)
 }
