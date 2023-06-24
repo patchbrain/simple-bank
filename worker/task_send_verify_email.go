@@ -20,8 +20,11 @@ func (r *RedisTaskDistributor) EnqueueTask(ctx context.Context, payload VerifyEm
 	if err != nil {
 		return fmt.Errorf("fail to marshal payload: %w", err)
 	}
-	task := asynq.NewTask(VerifyEmailTaskName, data, opts...)
-	taskInfo, err := r.client.Enqueue(task)
+	task := asynq.NewTask(VerifyEmailTaskName, data)
+	taskInfo, err := r.client.Enqueue(task, opts...)
+	if err != nil {
+		return fmt.Errorf("fail to enqueue task: %w", err)
+	}
 
 	log.Info().Str("username", payload.Username).
 		Str("task_state", taskInfo.State.String()).
@@ -29,6 +32,7 @@ func (r *RedisTaskDistributor) EnqueueTask(ctx context.Context, payload VerifyEm
 		Str("task_name", VerifyEmailTaskName).
 		Str("task_type", taskInfo.Type).
 		Str("task_queue", taskInfo.Queue).
+		Str("task_group", taskInfo.Group).
 		Msg("distribute a verify email task")
 
 	return nil
