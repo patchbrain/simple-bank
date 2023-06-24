@@ -6,6 +6,8 @@ import (
 )
 
 type Config struct {
+	Environment          string        `mapstructure:"ENVIRONMENT"`
+	RedisAddress         string        `mapstructure:"REDIS_ADDRESS"`
 	DbDriver             string        `mapstructure:"DB_DRIVER"`
 	DbSource             string        `mapstructure:"DB_SOURCE"`
 	MigrateUrl           string        `mapstructure:"MIGRATE_URL"`

@@ -14,7 +14,18 @@ import (
 )
 
 func (s *Server) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
-	// todo: 增加限制，只有当前用户能够更改自己的信息
+	// 增加限制，只有当前用户能够更改自己的信息
+	// 验证令牌有效性
+	userPayload, err := s.AuthorizeUser(ctx)
+	if err != nil {
+		return nil, authorizationError(err)
+	}
+
+	// 验证用户一致性
+	if userPayload.Username != req.GetUsername() {
+		return nil, status.Errorf(codes.PermissionDenied, "cannot modify other user's info")
+	}
+
 	// 验证参数，并对错误列表进行处理
 	violations := ValidateUpdateUserRequest(req)
 	if violations != nil {
