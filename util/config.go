@@ -6,6 +6,8 @@ import (
 )
 
 type Config struct {
+	FromEmailAddress     string        `mapstructure:"FROM_EMAIL_ADDRESS"`
+	FromEmailPassword    string        `mapstructure:"FROM_EMAIL_PASSWORD"`
 	Environment          string        `mapstructure:"ENVIRONMENT"`
 	RedisAddress         string        `mapstructure:"REDIS_ADDRESS"`
 	DbDriver             string        `mapstructure:"DB_DRIVER"`

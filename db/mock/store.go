@@ -380,6 +380,21 @@ func (mr *MockStoreMockRecorder) ListTransferByToId(arg0, arg1 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTransferByToId", reflect.TypeOf((*MockStore)(nil).ListTransferByToId), arg0, arg1)
 }
 
+// TxCreateUser mocks base method.
+func (m *MockStore) TxCreateUser(arg0 context.Context, arg1 db.TxCreateUserParam) (db.TxCreateUserResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TxCreateUser", arg0, arg1)
+	ret0, _ := ret[0].(db.TxCreateUserResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// TxCreateUser indicates an expected call of TxCreateUser.
+func (mr *MockStoreMockRecorder) TxCreateUser(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TxCreateUser", reflect.TypeOf((*MockStore)(nil).TxCreateUser), arg0, arg1)
+}
+
 // TxTransfer mocks base method.
 func (m *MockStore) TxTransfer(arg0 context.Context, arg1 db.TxTransferParam) (db.TxTransferResult, error) {
 	m.ctrl.T.Helper()
