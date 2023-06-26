@@ -11,6 +11,7 @@ message UpdateUserRequest{
   optional string password = 2;
   optional string full_name = 3;
   optional string email = 4;
+  optional bool is_verified = 5;
 }
 
 message UpdateUserResponse{

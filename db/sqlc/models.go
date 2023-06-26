@@ -18,6 +18,16 @@ type Account struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+type EmailVerify struct {
+	ID         int64     `json:"id"`
+	Username   string    `json:"username"`
+	Email      string    `json:"email"`
+	IsUsed     bool      `json:"is_used"`
+	SecretCode string    `json:"secret_code"`
+	CreatedAt  time.Time `json:"created_at"`
+	ExpiredAt  time.Time `json:"expired_at"`
+}
+
 type Entry struct {
 	ID        int64 `json:"id"`
 	AccountID int64 `json:"account_id"`
@@ -53,4 +63,5 @@ type User struct {
 	Email             string    `json:"email"`
 	PasswordChangedAt time.Time `json:"password_changed_at"`
 	CreatedAt         time.Time `json:"created_at"`
+	IsVerified        bool      `json:"is_verified"`
 }

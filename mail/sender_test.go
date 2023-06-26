@@ -7,6 +7,10 @@ import (
 )
 
 func TestSendEmail(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
 	cfg, err := util.LoadConfig("..")
 	require.NoError(t, err)
 	sender := NewWangYiEmailSender(cfg.FromEmailAddress, cfg.FromEmailPassword, "simple-bank")

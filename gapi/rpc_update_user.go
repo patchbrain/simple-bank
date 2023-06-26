@@ -71,7 +71,7 @@ func (s *Server) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb
 		if err == sql.ErrNoRows {
 			return nil, status.Errorf(codes.NotFound, "cannot find user: %s", params.Username)
 		}
-		return nil, status.Errorf(codes.Internal, "fail to create user: %s", err)
+		return nil, status.Errorf(codes.Internal, "fail to update user: %s", err)
 	}
 
 	rsp := &pb.UpdateUserResponse{

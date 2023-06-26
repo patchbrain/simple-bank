@@ -96,6 +96,21 @@ func (mr *MockStoreMockRecorder) CreateAccount(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccount", reflect.TypeOf((*MockStore)(nil).CreateAccount), arg0, arg1)
 }
 
+// CreateEmailVerify mocks base method.
+func (m *MockStore) CreateEmailVerify(arg0 context.Context, arg1 db.CreateEmailVerifyParams) (db.EmailVerify, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateEmailVerify", arg0, arg1)
+	ret0, _ := ret[0].(db.EmailVerify)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateEmailVerify indicates an expected call of CreateEmailVerify.
+func (mr *MockStoreMockRecorder) CreateEmailVerify(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateEmailVerify", reflect.TypeOf((*MockStore)(nil).CreateEmailVerify), arg0, arg1)
+}
+
 // CreateEntry mocks base method.
 func (m *MockStore) CreateEntry(arg0 context.Context, arg1 db.CreateEntryParams) (db.Entry, error) {
 	m.ctrl.T.Helper()

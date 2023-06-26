@@ -15,6 +15,7 @@ type Querier interface {
 	CountAccounts(ctx context.Context) (int64, error)
 	CountEntries(ctx context.Context) (int64, error)
 	CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error)
+	CreateEmailVerify(ctx context.Context, arg CreateEmailVerifyParams) (EmailVerify, error)
 	CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	CreateTransfer(ctx context.Context, arg CreateTransferParams) (Transfer, error)
@@ -22,6 +23,7 @@ type Querier interface {
 	DeleteAccount(ctx context.Context, id int64) error
 	GetAccount(ctx context.Context, id int64) (Account, error)
 	GetAccountForUpdate(ctx context.Context, id int64) (Account, error)
+	GetEmailVerify(ctx context.Context, id int64) (EmailVerify, error)
 	GetEntry(ctx context.Context, id int64) (Entry, error)
 	GetFirstAccount(ctx context.Context) (Account, error)
 	GetFirstEntry(ctx context.Context) (Entry, error)
@@ -35,6 +37,7 @@ type Querier interface {
 	ListTransferByFromIdAndToId(ctx context.Context, arg ListTransferByFromIdAndToIdParams) ([]Transfer, error)
 	ListTransferByToId(ctx context.Context, arg ListTransferByToIdParams) ([]Transfer, error)
 	UpdateAccountBalance(ctx context.Context, arg UpdateAccountBalanceParams) (Account, error)
+	UpdateEmailVerify(ctx context.Context, arg UpdateEmailVerifyParams) (EmailVerify, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 

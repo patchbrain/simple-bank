@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hibiken/asynq"
+	db "github.com/patchbrain/simple-bank/db/sqlc"
+	"github.com/patchbrain/simple-bank/util"
 	"github.com/rs/zerolog/log"
 )
 
@@ -51,6 +53,29 @@ func (r *RedisTaskProcessor) ProcessTask(ctx context.Context, task *asynq.Task) 
 			return fmt.Errorf("cannot find the user: %w", err)
 		}
 		return fmt.Errorf("fail to get user: %w", err)
+	}
+
+	// 创建email_verify
+	verify, err := r.store.CreateEmailVerify(ctx, db.CreateEmailVerifyParams{
+		Username:   user.Username,
+		Email:      user.Email,
+		SecretCode: util.RandomString(32),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create email verify: %w", err)
+	}
+
+	path := "/v1/verify_email"
+	query := fmt.Sprintf("id=%d&secret_code=%s", verify.ID, verify.SecretCode)
+	urlVerify := fmt.Sprintf("localhost:8080%s?%s", path, query)
+	subject := "Welcome to Simple Bank"
+	to := []string{user.Email}
+	content := fmt.Sprintf(`Hello %s,<br/>
+	Thank you for registering with us!<br/>
+	Please <a href="%s">click here</a> to verify your email.<br/>`, user.Username, urlVerify)
+	err = r.mailSender.SendEmail(subject, to, content, nil, nil, nil)
+	if err != nil {
+		return fmt.Errorf("fail to send email: %w", err)
 	}
 
 	log.Info().Str("username", user.Username).

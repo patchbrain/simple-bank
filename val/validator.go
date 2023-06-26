@@ -20,6 +20,22 @@ func ValidateString(value string, min int, max int) error {
 	return nil
 }
 
+// 验证 verify email 的验证码
+func ValidateSecretCode(value string, l int) error {
+	if l != len(value) {
+		return fmt.Errorf("只能包括 %d 个字符", l)
+	}
+	return nil
+}
+
+// 验证 verify email id
+func ValidateEmailId(value int64) error {
+	if value <= 0 {
+		return fmt.Errorf("编号大于0")
+	}
+	return nil
+}
+
 // 验证用户名
 func ValidateUsername(value string, min int, max int) error {
 	// 验证长度

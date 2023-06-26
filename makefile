@@ -17,7 +17,7 @@ migratedown1:
 sqlc:
 	docker run --rm -v "D:\Code\simple-bank:/src" -w /src kjconroy/sqlc:1.17.2 generate
 test:
-	go test -v --cover ./...
+	go test -v -short --cover ./...
 server:
 	go run main.go
 db_docs:
@@ -40,4 +40,6 @@ evans:
 	evans --port 8081 --host localhost -r repl
 redis:
 	docker run --name redis -p 6379:6379 -d redis:7-alpine
-.PHONY: postgres createdb dropdb migrateup migratedown migrateup1 migratedown1 sqlc test server mock db_docs db_schema proto evans redis
+new_migration:
+	migrate create -ext sql -dir db/migration -seq $(name)
+.PHONY: postgres createdb dropdb migrateup migratedown migrateup1 migratedown1 sqlc test server mock db_docs db_schema proto evans redis new_migration

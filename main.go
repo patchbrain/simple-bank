@@ -14,6 +14,7 @@ import (
 	"github.com/patchbrain/simple-bank/db/sqlc"
 	_ "github.com/patchbrain/simple-bank/doc/statik"
 	"github.com/patchbrain/simple-bank/gapi"
+	"github.com/patchbrain/simple-bank/mail"
 	"github.com/patchbrain/simple-bank/pb"
 	"github.com/patchbrain/simple-bank/util"
 	"github.com/patchbrain/simple-bank/worker"
@@ -36,8 +37,7 @@ func main() {
 	var err error
 	cfg, err := util.LoadConfig(".")
 	if err != nil {
-		log.Err(err)
-		log.Fatal().Msg("fail to read config")
+		log.Fatal().Err(err).Msg("fail to read config")
 		return
 	}
 
@@ -49,21 +49,18 @@ func main() {
 	// 连接数据库
 	conn, err := sql.Open(cfg.DbDriver, cfg.DbSource)
 	if err != nil {
-		log.Err(err)
-		log.Fatal().Msg("fail to connection the postgresql")
+		log.Fatal().Err(err).Msg("fail to connection the postgresql")
 	}
 
 	// 迁移数据库
 	migration, err := migrate.New(cfg.MigrateUrl, cfg.DbSource)
 	if err != nil {
-		log.Err(err)
-		log.Fatal().Msg("fail to create migration")
+		log.Fatal().Err(err).Msg("fail to create migration")
 	}
 
 	err = migration.Up()
 	if err != nil && err != migrate.ErrNoChange {
-		log.Err(err)
-		log.Fatal().Msg("fail to migrate up")
+		log.Fatal().Err(err).Msg("fail to migrate up")
 		return
 	}
 
@@ -78,14 +75,15 @@ func main() {
 	q := db.NewStore(conn)
 
 	// Start Processor
-	go runProcessor(redisOpt, q)
+	go runProcessor(cfg, redisOpt, q)
 
 	go runGatewayServer(cfg, q, taskDistributor)
 	runGrpcServer(cfg, q, taskDistributor)
 }
 
-func runProcessor(opt asynq.RedisConnOpt, store db.Store) {
-	processor := worker.NewRedisTaskProcessor(opt, store)
+func runProcessor(cfg util.Config, opt asynq.RedisConnOpt, store db.Store) {
+	sender := mail.NewWangYiEmailSender(cfg.FromEmailAddress, cfg.FromEmailPassword, "SimpleBank")
+	processor := worker.NewRedisTaskProcessor(opt, store, sender)
 	log.Info().Msg("start processor")
 	err := processor.Start()
 	if err != nil {
